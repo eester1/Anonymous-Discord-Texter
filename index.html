@@ -7,11 +7,6 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
   <style>
-    /* ============================================================
-       CONFIGURATION — paste your Discord webhook URL below
-       ============================================================ */
-    /* See the JS section at the bottom */
-
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     :root {
@@ -28,7 +23,7 @@
     }
 
     html, body {
-      height: 100%;
+      min-height: 100%;
       background: var(--bg);
       color: var(--text);
       font-family: 'Space Grotesk', sans-serif;
@@ -37,7 +32,6 @@
       justify-content: center;
     }
 
-    /* animated background grid */
     body::before {
       content: '';
       position: fixed;
@@ -75,7 +69,6 @@
       gap: 2rem;
     }
 
-    /* header */
     .header {
       display: flex;
       flex-direction: column;
@@ -94,7 +87,7 @@
       justify-content: center;
     }
 
-    .discord-logo svg { width: 30px; height: 30px; fill: white; }
+    .discord-logo svg { width: 32px; height: 32px; fill: white; }
 
     h1 {
       font-size: 22px;
@@ -110,7 +103,6 @@
       letter-spacing: 0.03em;
     }
 
-    /* card */
     .card {
       width: 100%;
       background: var(--surface);
@@ -143,23 +135,9 @@
       flex-shrink: 0;
     }
 
-    .name-tag {
-      display: flex;
-      flex-direction: column;
-      gap: 1px;
-    }
-
-    .display-name {
-      font-size: 13px;
-      font-weight: 600;
-      color: var(--text);
-    }
-
-    .handle {
-      font-size: 11px;
-      font-family: 'JetBrains Mono', monospace;
-      color: var(--muted);
-    }
+    .name-tag { display: flex; flex-direction: column; gap: 1px; }
+    .display-name { font-size: 13px; font-weight: 600; color: var(--text); }
+    .handle { font-size: 11px; font-family: 'JetBrains Mono', monospace; color: var(--muted); }
 
     textarea {
       width: 100%;
@@ -178,17 +156,10 @@
     }
 
     textarea::placeholder { color: var(--muted); }
+    textarea:focus { border-color: rgba(88,101,242,0.5); box-shadow: 0 0 0 3px rgba(88,101,242,0.1); }
+    textarea:disabled { opacity: 0.4; cursor: not-allowed; }
 
-    textarea:focus {
-      border-color: rgba(88,101,242,0.5);
-      box-shadow: 0 0 0 3px rgba(88,101,242,0.1);
-    }
-
-    .row {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-    }
+    .row { display: flex; align-items: center; justify-content: space-between; }
 
     .char-count {
       font-size: 12px;
@@ -196,7 +167,6 @@
       color: var(--muted);
       transition: color 0.2s;
     }
-
     .char-count.warn { color: #faa61a; }
     .char-count.over { color: var(--red); }
 
@@ -217,17 +187,217 @@
       align-items: center;
       gap: 7px;
     }
-
     .send-btn svg { width: 15px; height: 15px; fill: white; }
-
-    .send-btn.active {
-      opacity: 1;
-      pointer-events: auto;
-    }
-
+    .send-btn.active { opacity: 1; pointer-events: auto; }
     .send-btn.active:hover { background: var(--discord-dark); }
     .send-btn.active:active { transform: scale(0.97); }
     .send-btn.loading { opacity: 0.7; pointer-events: none; }
+
+    /* locked banner */
+    .locked-banner {
+      display: none;
+      width: 100%;
+      background: rgba(237,66,69,0.08);
+      border: 1px solid rgba(237,66,69,0.25);
+      border-radius: 10px;
+      padding: 12px 16px;
+      font-size: 13px;
+      color: var(--red);
+      text-align: center;
+      font-weight: 500;
+      animation: fadeUp 0.3s ease both;
+    }
+
+    /* share button */
+    .share-btn {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: transparent;
+      border: 1px solid var(--border);
+      border-radius: 9999px;
+      padding: 9px 20px;
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--muted);
+      cursor: pointer;
+      transition: border-color 0.2s, color 0.2s, background 0.2s;
+      animation: fadeUp 0.5s ease 0.3s both;
+    }
+    .share-btn:hover { border-color: rgba(88,101,242,0.5); color: var(--discord); background: rgba(88,101,242,0.07); }
+    .share-btn:active { transform: scale(0.97); }
+
+    /* admin button (small, subtle, bottom corner) */
+    .admin-trigger {
+      position: fixed;
+      bottom: 1.2rem;
+      right: 1.2rem;
+      background: transparent;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 6px 12px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      color: var(--muted);
+      cursor: pointer;
+      transition: all 0.2s;
+      z-index: 50;
+    }
+    .admin-trigger:hover { border-color: rgba(88,101,242,0.4); color: var(--discord); }
+
+    /* modal overlay */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.7);
+      z-index: 100;
+      align-items: center;
+      justify-content: center;
+      padding: 1rem;
+    }
+    .modal-overlay.show { display: flex; }
+
+    .modal {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 1.5rem;
+      width: 100%;
+      max-width: 380px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      animation: fadeUp 0.25s ease both;
+    }
+
+    .modal-title {
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--text);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .modal-title svg { width: 18px; height: 18px; fill: var(--discord); }
+
+    .modal input[type="password"] {
+      width: 100%;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 10px 14px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 14px;
+      color: var(--text);
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    .modal input[type="password"]:focus { border-color: rgba(88,101,242,0.5); }
+    .modal input[type="password"].wrong { border-color: rgba(237,66,69,0.6); animation: shake 0.3s ease; }
+
+    .modal-btn-row { display: flex; gap: 10px; }
+
+    .btn-primary {
+      flex: 1;
+      background: var(--discord);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      padding: 9px;
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+    .btn-primary:hover { background: var(--discord-dark); }
+
+    .btn-secondary {
+      background: transparent;
+      color: var(--muted);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 9px 16px;
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 14px;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .btn-secondary:hover { color: var(--text); border-color: rgba(255,255,255,0.2); }
+
+    /* admin panel (shown after login) */
+    .admin-panel {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .admin-panel-title {
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--text);
+      padding-bottom: 8px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .toggle-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 0;
+    }
+
+    .toggle-info { display: flex; flex-direction: column; gap: 3px; }
+    .toggle-label { font-size: 14px; font-weight: 600; color: var(--text); }
+    .toggle-desc { font-size: 12px; color: var(--muted); }
+
+    .toggle {
+      position: relative;
+      width: 44px;
+      height: 24px;
+      flex-shrink: 0;
+    }
+    .toggle input { opacity: 0; width: 0; height: 0; }
+    .toggle-slider {
+      position: absolute;
+      inset: 0;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 9999px;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .toggle-slider::before {
+      content: '';
+      position: absolute;
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: var(--muted);
+      top: 3px;
+      left: 3px;
+      transition: transform 0.2s, background 0.2s;
+    }
+    .toggle input:checked + .toggle-slider { background: rgba(87,242,135,0.15); border-color: rgba(87,242,135,0.3); }
+    .toggle input:checked + .toggle-slider::before { transform: translateX(20px); background: var(--green); }
+
+    .divider { height: 1px; background: var(--border); }
+
+    .admin-logout {
+      background: transparent;
+      border: none;
+      color: var(--muted);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      cursor: pointer;
+      text-align: center;
+      padding: 4px;
+      transition: color 0.2s;
+    }
+    .admin-logout:hover { color: var(--red); }
 
     /* toast */
     .toast {
@@ -246,83 +416,20 @@
       gap: 8px;
       transition: transform 0.3s cubic-bezier(.34,1.56,.64,1), opacity 0.3s;
       opacity: 0;
-      z-index: 100;
+      z-index: 200;
       white-space: nowrap;
     }
-
-    .toast.show {
-      transform: translateX(-50%) translateY(0);
-      opacity: 1;
-    }
-
+    .toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
     .toast.success { border-color: rgba(87,242,135,0.3); color: var(--green); }
     .toast.error { border-color: rgba(237,66,69,0.3); color: var(--red); }
+    .dot { width: 8px; height: 8px; border-radius: 50%; background: currentColor; flex-shrink: 0; }
 
-    .dot {
-      width: 8px;
-      height: 8px;
-      border-radius: 50%;
-      background: currentColor;
-      flex-shrink: 0;
-    }
-
-    /* webhook warning banner */
-    .warning {
-      width: 100%;
-      background: rgba(250,166,26,0.08);
-      border: 1px solid rgba(250,166,26,0.2);
-      border-radius: 10px;
-      padding: 12px 16px;
-      font-size: 13px;
-      color: #faa61a;
-      line-height: 1.5;
-      animation: fadeUp 0.5s ease 0.2s both;
-      display: none;
-    }
-
-    .warning strong { font-weight: 600; }
-
-    .warning code {
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 11px;
-      background: rgba(250,166,26,0.15);
-      padding: 1px 5px;
-      border-radius: 4px;
-    }
-
-    @keyframes fadeDown {
-      from { opacity: 0; transform: translateY(-12px); }
-      to   { opacity: 1; transform: translateY(0); }
-    }
-
-    .share-btn {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      background: transparent;
-      border: 1px solid var(--border);
-      border-radius: 9999px;
-      padding: 9px 20px;
-      font-family: 'Space Grotesk', sans-serif;
-      font-size: 13px;
-      font-weight: 500;
-      color: var(--muted);
-      cursor: pointer;
-      transition: border-color 0.2s, color 0.2s, background 0.2s;
-      animation: fadeUp 0.5s ease 0.3s both;
-    }
-
-    .share-btn:hover {
-      border-color: rgba(88,101,242,0.5);
-      color: var(--discord);
-      background: rgba(88,101,242,0.07);
-    }
-
-    .share-btn:active { transform: scale(0.97); }
-
-    @keyframes fadeUp {
-      from { opacity: 0; transform: translateY(12px); }
-      to   { opacity: 1; transform: translateY(0); }
+    @keyframes fadeDown { from { opacity: 0; transform: translateY(-12px); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes fadeUp { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes shake {
+      0%,100% { transform: translateX(0); }
+      25% { transform: translateX(-6px); }
+      75% { transform: translateX(6px); }
     }
   </style>
 </head>
@@ -333,7 +440,7 @@
 <div class="container">
   <div class="header">
     <div class="discord-logo">
-      <svg viewBox="0 0 127.14 96.36" xmlns="http://www.w3.org/2000/svg" style="width:32px;height:32px;fill:white;">
+      <svg viewBox="0 0 127.14 96.36" xmlns="http://www.w3.org/2000/svg">
         <path d="M107.7,8.07A105.15,105.15,0,0,0,81.47,0a72.06,72.06,0,0,0-3.36,6.83A97.68,97.68,0,0,0,49,6.83,72.37,72.37,0,0,0,45.64,0,105.89,105.89,0,0,0,19.39,8.09C2.79,32.65-1.71,56.6.54,80.21h0A105.73,105.73,0,0,0,32.71,96.36,77.7,77.7,0,0,0,39.6,85.25a68.42,68.42,0,0,1-10.85-5.18c.91-.66,1.8-1.34,2.66-2a75.57,75.57,0,0,0,64.32,0c.87.71,1.76,1.39,2.66,2a68.68,68.68,0,0,1-10.87,5.19,77,77,0,0,0,6.89,11.1A105.25,105.25,0,0,0,126.6,80.22h0C129.24,52.84,122.09,29.11,107.7,8.07ZM42.45,65.69C36.18,65.69,31,60,31,53s5-12.74,11.43-12.74S54,46,53.89,53,48.84,65.69,42.45,65.69Zm42.24,0C78.41,65.69,73.25,60,73.25,53s5-12.74,11.44-12.74S96.23,46,96.12,53,91.08,65.69,84.69,65.69Z"/>
       </svg>
     </div>
@@ -341,22 +448,19 @@
     <span class="subtitle">→ your message goes straight to the channel</span>
   </div>
 
-  <div class="warning" id="warning">
-    <strong>Setup required:</strong> Open this file and find the line near the bottom that says<br>
-    <code>const WEBHOOK_URL = "";</code> — paste your Discord webhook URL between the quotes.
+  <div class="locked-banner" id="locked-banner">
+    🔒 This site is currently locked by the admin. Check back later!
   </div>
 
   <div class="card">
     <div class="username-row">
-      <div class="avatar" id="av">?</div>
+      <div class="avatar" id="av">A</div>
       <div class="name-tag">
         <span class="display-name" id="display-name">Anonymous</span>
-        <span class="handle" id="handle">configure webhook to post</span>
+        <span class="handle" id="handle">ready to post</span>
       </div>
     </div>
-
     <textarea id="msg" placeholder="Type a message..." maxlength="2000"></textarea>
-
     <div class="row">
       <span class="char-count" id="count">0 / 2000</span>
       <button class="send-btn" id="send-btn">
@@ -374,47 +478,125 @@
   <p style="font-family:'Space Grotesk',sans-serif;font-size:13px;font-weight:700;color:#f0f0f0;text-align:center;max-width:380px;line-height:1.6;animation:fadeUp 0.5s ease 0.4s both;">Please share to anyone you know or anyone you feel comfortable with sharing to, it helps us out with spreading this website.</p>
 </div>
 
+<!-- Admin trigger button -->
+<button class="admin-trigger" id="admin-trigger">⚙</button>
+
+<!-- Modal -->
+<div class="modal-overlay" id="modal-overlay">
+  <div class="modal">
+
+    <!-- Login view -->
+    <div id="login-view">
+      <div class="modal-title">
+        <svg viewBox="0 0 24 24"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4z"/></svg>
+        Admin Panel
+      </div>
+      <input type="password" id="pw-input" placeholder="Enter..." />
+      <div class="modal-btn-row">
+        <button class="btn-secondary" id="modal-cancel">Cancel</button>
+        <button class="btn-primary" id="pw-submit">Unlock</button>
+      </div>
+    </div>
+
+    <!-- Admin panel view -->
+    <div id="panel-view" style="display:none;">
+      <div class="admin-panel">
+        <div class="admin-panel-title">⚙ Admin Controls</div>
+
+        <div class="toggle-row">
+          <div class="toggle-info">
+            <span class="toggle-label">Site Active</span>
+            <span class="toggle-desc">Turn off to lock the typing bar for everyone</span>
+          </div>
+          <label class="toggle">
+            <input type="checkbox" id="toggle-active" checked />
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+
+        <div class="divider"></div>
+
+        <div class="toggle-row">
+          <div class="toggle-info">
+            <span class="toggle-label">Webhook Connected</span>
+            <span class="toggle-desc">Turn off to stop messages reaching Discord</span>
+          </div>
+          <label class="toggle">
+            <input type="checkbox" id="toggle-webhook" checked />
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+
+        <div class="divider"></div>
+
+        <button class="admin-logout" id="admin-logout">log out of admin</button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
 <div class="toast" id="toast">
   <div class="dot"></div>
   <span id="toast-msg">Sent!</span>
 </div>
 
 <script>
-  // ============================================================
-  //  PASTE YOUR DISCORD WEBHOOK URL HERE (between the quotes)
-  // ============================================================
-  const WEBHOOK_URL = "";
-
-  // Optional: change the sender name and avatar letter shown on the site
+  const WEBHOOK_URL = "https://discord.com/api/webhooks/1508641545249624086/OER6q1UYiGwn0ascZtu5loOtYybAN15VlDD4rNBV28GBDlb7zE0loWQ3l-H6uykX9UN2";
+  const ADMIN_PASSWORD = "ebin5337";
   const SENDER_NAME = "Anonymous";
   const AVATAR_LETTER = "A";
-  // ============================================================
+
+  // state
+  let siteActive = localStorage.getItem('siteActive') !== 'false';
+  let webhookActive = localStorage.getItem('webhookActive') !== 'false';
+  let adminUnlocked = false;
 
   const msg = document.getElementById('msg');
   const sendBtn = document.getElementById('send-btn');
   const countEl = document.getElementById('count');
   const toast = document.getElementById('toast');
   const toastMsg = document.getElementById('toast-msg');
-  const warning = document.getElementById('warning');
   const av = document.getElementById('av');
   const displayName = document.getElementById('display-name');
   const handle = document.getElementById('handle');
+  const lockedBanner = document.getElementById('locked-banner');
+  const modalOverlay = document.getElementById('modal-overlay');
+  const loginView = document.getElementById('login-view');
+  const panelView = document.getElementById('panel-view');
+  const pwInput = document.getElementById('pw-input');
+  const toggleActive = document.getElementById('toggle-active');
+  const toggleWebhook = document.getElementById('toggle-webhook');
 
   av.textContent = AVATAR_LETTER;
   displayName.textContent = SENDER_NAME;
 
-  if (!WEBHOOK_URL) {
-    warning.style.display = 'block';
-    handle.textContent = 'webhook not configured';
-  } else {
-    handle.textContent = 'ready to post';
+  function applyState() {
+    toggleActive.checked = siteActive;
+    toggleWebhook.checked = webhookActive;
+
+    if (!siteActive) {
+      msg.disabled = true;
+      msg.placeholder = 'Site is currently locked by admin.';
+      sendBtn.className = 'send-btn';
+      lockedBanner.style.display = 'block';
+      handle.textContent = 'locked by admin';
+    } else {
+      msg.disabled = false;
+      msg.placeholder = 'Type a message...';
+      lockedBanner.style.display = 'none';
+      handle.textContent = webhookActive ? 'ready to post' : 'webhook disconnected';
+    }
   }
 
+  applyState();
+
+  // typing
   msg.addEventListener('input', () => {
     const len = msg.value.length;
     countEl.textContent = len + ' / 2000';
     countEl.className = 'char-count' + (len >= 2000 ? ' over' : len >= 1800 ? ' warn' : '');
-    sendBtn.className = 'send-btn' + (len > 0 && len <= 2000 && WEBHOOK_URL ? ' active' : '');
+    sendBtn.className = 'send-btn' + (len > 0 && len <= 2000 && siteActive ? ' active' : '');
   });
 
   msg.addEventListener('keydown', e => {
@@ -426,9 +608,7 @@
 
   sendBtn.addEventListener('click', sendMessage);
 
-  const mentions = {
-    'eester1': '337011899940208640'
-  };
+  const mentions = { 'eester1': '337011899940208640' };
 
   function resolveMentions(text) {
     return text
@@ -441,11 +621,16 @@
   }
 
   async function sendMessage() {
+    if (!siteActive) return;
     const text = resolveMentions(msg.value.trim());
-    if (!text || !WEBHOOK_URL) return;
+    if (!text) return;
+
+    if (!webhookActive || !WEBHOOK_URL) {
+      showToast('Webhook is disconnected.', 'error');
+      return;
+    }
 
     sendBtn.className = 'send-btn loading';
-    sendBtn.querySelector('span') && null;
 
     try {
       const res = await fetch(WEBHOOK_URL, {
@@ -464,30 +649,87 @@
         countEl.className = 'char-count';
         showToast('Message sent to Discord!', 'success');
       } else {
-        showToast('Failed to send. Check your webhook URL.', 'error');
+        showToast('Failed to send. Check webhook URL.', 'error');
       }
     } catch (err) {
       showToast('Network error. Try again.', 'error');
     }
 
-    sendBtn.className = 'send-btn';
+    sendBtn.className = siteActive ? 'send-btn' : 'send-btn';
   }
 
-  const shareBtn = document.getElementById('share-btn');
-  shareBtn.addEventListener('click', async () => {
+  // share
+  document.getElementById('share-btn').addEventListener('click', async () => {
     const url = window.location.href;
     if (navigator.share) {
-      try {
-        await navigator.share({ title: 'Post to The Floob Server', url });
-      } catch {}
+      try { await navigator.share({ title: 'Post to The Floob Server', url }); } catch {}
     } else {
       try {
         await navigator.clipboard.writeText(url);
         showToast('Link copied to clipboard!', 'success');
       } catch {
-        showToast('Copy this URL: ' + url, 'success');
+        showToast('Copy: ' + url, 'success');
       }
     }
+  });
+
+  // admin trigger
+  document.getElementById('admin-trigger').addEventListener('click', () => {
+    if (adminUnlocked) {
+      loginView.style.display = 'none';
+      panelView.style.display = 'block';
+    } else {
+      loginView.style.display = 'block';
+      panelView.style.display = 'none';
+      pwInput.value = '';
+    }
+    modalOverlay.classList.add('show');
+  });
+
+  document.getElementById('modal-cancel').addEventListener('click', () => {
+    modalOverlay.classList.remove('show');
+  });
+
+  modalOverlay.addEventListener('click', e => {
+    if (e.target === modalOverlay) modalOverlay.classList.remove('show');
+  });
+
+  // password submit
+  document.getElementById('pw-submit').addEventListener('click', checkPassword);
+  pwInput.addEventListener('keydown', e => { if (e.key === 'Enter') checkPassword(); });
+
+  function checkPassword() {
+    if (pwInput.value === ADMIN_PASSWORD) {
+      adminUnlocked = true;
+      loginView.style.display = 'none';
+      panelView.style.display = 'block';
+      pwInput.classList.remove('wrong');
+    } else {
+      pwInput.classList.add('wrong');
+      pwInput.value = '';
+      setTimeout(() => pwInput.classList.remove('wrong'), 400);
+    }
+  }
+
+  // toggles
+  toggleActive.addEventListener('change', () => {
+    siteActive = toggleActive.checked;
+    localStorage.setItem('siteActive', siteActive);
+    applyState();
+    showToast(siteActive ? 'Site unlocked.' : 'Site locked for everyone.', siteActive ? 'success' : 'error');
+  });
+
+  toggleWebhook.addEventListener('change', () => {
+    webhookActive = toggleWebhook.checked;
+    localStorage.setItem('webhookActive', webhookActive);
+    applyState();
+    showToast(webhookActive ? 'Webhook connected.' : 'Webhook disconnected.', webhookActive ? 'success' : 'error');
+  });
+
+  // logout
+  document.getElementById('admin-logout').addEventListener('click', () => {
+    adminUnlocked = false;
+    modalOverlay.classList.remove('show');
   });
 
   function showToast(message, type) {
