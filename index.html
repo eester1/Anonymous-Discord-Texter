@@ -481,7 +481,7 @@
 <!-- Admin trigger button (hidden by default, shown only for admin IP) -->
 <button class="admin-trigger" id="admin-trigger" style="display:none;">⚙</button>
 
-<div style="position:fixed;bottom:1.2rem;left:1.2rem;font-family:'JetBrains Mono',monospace;font-size:11px;color:rgba(124,127,142,0.5);z-index:50;letter-spacing:0.05em;">V3</div>
+<div style="position:fixed;bottom:1.2rem;left:1.2rem;font-family:'JetBrains Mono',monospace;font-size:11px;color:rgba(124,127,142,0.5);z-index:50;letter-spacing:0.05em;">V6</div>
 
 <!-- Modal -->
 <div class="modal-overlay" id="modal-overlay">
@@ -531,15 +531,14 @@
 </div>
 
 <script>
-  const WEBHOOK_URL = "https://discord.com/api/webhooks/1508641545249624086/OER6q1UYiGwn0ascZtu5loOtYybAN15VlDD4rNBV28GBDlb7zE0loWQ3l-H6uykX9UN2";
+  const WEBHOOK_URL = "https://project-3rlrn.vercel.app/api/send";
   const ADMIN_IP = "2600:1700:dc0:9070:29d2:a3e8:39c:10d4";
+  const NPOINT_URL = "https://api.npoint.io/ec1fde3721f0c5a3ed79";
   const SENDER_NAME = "Anonymous";
   const AVATAR_LETTER = "A";
 
-  // state
-  let siteActive = localStorage.getItem('siteActive') !== 'false';
-  let webhookActive = localStorage.getItem('webhookActive') !== 'false';
-  let adminUnlocked = false;
+  let siteActive = true;
+  let webhookActive = true;
 
   const msg = document.getElementById('msg');
   const sendBtn = document.getElementById('send-btn');
@@ -551,9 +550,7 @@
   const handle = document.getElementById('handle');
   const lockedBanner = document.getElementById('locked-banner');
   const modalOverlay = document.getElementById('modal-overlay');
-  const loginView = document.getElementById('login-view');
   const panelView = document.getElementById('panel-view');
-  const pwInput = document.getElementById('pw-input');
   const toggleActive = document.getElementById('toggle-active');
   const toggleWebhook = document.getElementById('toggle-webhook');
 
@@ -563,39 +560,61 @@
   function applyState() {
     toggleActive.checked = siteActive;
     toggleWebhook.checked = webhookActive;
-
     const locked = !siteActive || !webhookActive;
-
     if (locked) {
       msg.disabled = true;
       sendBtn.className = 'send-btn';
       if (!siteActive) {
         msg.placeholder = 'Site is currently locked by admin.';
         handle.textContent = 'locked by admin';
-        lockedBanner.style.display = 'block';
+        lockedBanner.textContent = '🔒 This site is currently locked by the admin. Check back later!';
       } else {
         msg.placeholder = 'Messaging is currently disabled.';
         handle.textContent = 'webhook disconnected';
-        lockedBanner.style.display = 'block';
         lockedBanner.textContent = '🔌 Messaging is currently disabled. Check back later!';
       }
+      lockedBanner.style.display = 'block';
     } else {
       msg.disabled = false;
       msg.placeholder = 'Type a message...';
       lockedBanner.style.display = 'none';
-      lockedBanner.textContent = '🔒 This site is currently locked by the admin. Check back later!';
       handle.textContent = 'ready to post';
     }
   }
 
-  applyState();
+  async function loadState() {
+    try {
+      const res = await fetch(NPOINT_URL);
+      const data = await res.json();
+      siteActive = data.siteActive !== false;
+      webhookActive = data.webhookActive !== false;
+    } catch {
+      siteActive = true;
+      webhookActive = true;
+    }
+    applyState();
+  }
+
+  async function saveState() {
+    try {
+      await fetch(NPOINT_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ siteActive, webhookActive })
+      });
+    } catch {
+      showToast('Failed to save setting.', 'error');
+    }
+  }
+
+  loadState();
 
   // typing
   msg.addEventListener('input', () => {
     const len = msg.value.length;
     countEl.textContent = len + ' / 2000';
     countEl.className = 'char-count' + (len >= 2000 ? ' over' : len >= 1800 ? ' warn' : '');
-    sendBtn.className = 'send-btn' + (len > 0 && len <= 2000 && siteActive ? ' active' : '');
+    sendBtn.className = 'send-btn' + (len > 0 && len <= 2000 && siteActive && webhookActive ? ' active' : '');
   });
 
   msg.addEventListener('keydown', e => {
@@ -620,28 +639,16 @@
   }
 
   async function sendMessage() {
-    if (!siteActive) return;
+    if (!siteActive || !webhookActive) return;
     const text = resolveMentions(msg.value.trim());
-    if (!text) return;
-
-    if (!webhookActive || !WEBHOOK_URL) {
-      showToast('Webhook is disconnected.', 'error');
-      return;
-    }
-
+    if (!text || !WEBHOOK_URL) return;
     sendBtn.className = 'send-btn loading';
-
     try {
       const res = await fetch(WEBHOOK_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          username: SENDER_NAME,
-          content: text,
-          allowed_mentions: { parse: ['users'] }
-        })
+        body: JSON.stringify({ username: SENDER_NAME, content: text, allowed_mentions: { parse: ['users'] } })
       });
-
       if (res.ok || res.status === 204) {
         msg.value = '';
         countEl.textContent = '0 / 2000';
@@ -650,11 +657,10 @@
       } else {
         showToast('Failed to send. Check webhook URL.', 'error');
       }
-    } catch (err) {
+    } catch {
       showToast('Network error. Try again.', 'error');
     }
-
-    sendBtn.className = siteActive ? 'send-btn' : 'send-btn';
+    sendBtn.className = 'send-btn';
   }
 
   // share
@@ -672,7 +678,7 @@
     }
   });
 
-  // Check IP and show admin button if match
+  // IP check — show admin button only for owner
   fetch('https://api64.ipify.org?format=json')
     .then(r => r.json())
     .then(data => {
@@ -682,9 +688,7 @@
     })
     .catch(() => {});
 
-  // admin trigger
   document.getElementById('admin-trigger').addEventListener('click', () => {
-    panelView.style.display = 'block';
     modalOverlay.classList.add('show');
   });
 
@@ -692,24 +696,22 @@
     if (e.target === modalOverlay) modalOverlay.classList.remove('show');
   });
 
-  // toggles
-  toggleActive.addEventListener('change', () => {
+  // toggles — save to npoint so all users are affected
+  toggleActive.addEventListener('change', async () => {
     siteActive = toggleActive.checked;
-    localStorage.setItem('siteActive', siteActive);
     applyState();
-    showToast(siteActive ? 'Site unlocked.' : 'Site locked for everyone.', siteActive ? 'success' : 'error');
+    await saveState();
+    showToast(siteActive ? 'Site unlocked for everyone.' : 'Site locked for everyone.', siteActive ? 'success' : 'error');
   });
 
-  toggleWebhook.addEventListener('change', () => {
+  toggleWebhook.addEventListener('change', async () => {
     webhookActive = toggleWebhook.checked;
-    localStorage.setItem('webhookActive', webhookActive);
     applyState();
-    showToast(webhookActive ? 'Webhook connected.' : 'Webhook disconnected.', webhookActive ? 'success' : 'error');
+    await saveState();
+    showToast(webhookActive ? 'Webhook connected.' : 'Webhook disconnected for everyone.', webhookActive ? 'success' : 'error');
   });
 
-  // logout
   document.getElementById('admin-logout').addEventListener('click', () => {
-    adminUnlocked = false;
     modalOverlay.classList.remove('show');
   });
 
