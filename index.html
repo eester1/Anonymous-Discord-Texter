@@ -478,30 +478,17 @@
   <p style="font-family:'Space Grotesk',sans-serif;font-size:13px;font-weight:700;color:#f0f0f0;text-align:center;max-width:380px;line-height:1.6;animation:fadeUp 0.5s ease 0.4s both;">Please share to anyone you know or anyone you feel comfortable with sharing to, it helps us out with spreading this website.</p>
 </div>
 
-<!-- Admin trigger button -->
-<button class="admin-trigger" id="admin-trigger">⚙</button>
+<!-- Admin trigger button (hidden by default, shown only for admin IP) -->
+<button class="admin-trigger" id="admin-trigger" style="display:none;">⚙</button>
 
-<div style="position:fixed;bottom:1.2rem;left:1.2rem;font-family:'JetBrains Mono',monospace;font-size:11px;color:rgba(124,127,142,0.5);z-index:50;letter-spacing:0.05em;">V1</div>
+<div style="position:fixed;bottom:1.2rem;left:1.2rem;font-family:'JetBrains Mono',monospace;font-size:11px;color:rgba(124,127,142,0.5);z-index:50;letter-spacing:0.05em;">V2</div>
 
 <!-- Modal -->
 <div class="modal-overlay" id="modal-overlay">
   <div class="modal">
 
-    <!-- Login view -->
-    <div id="login-view">
-      <div class="modal-title">
-        <svg viewBox="0 0 24 24"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4z"/></svg>
-        Admin Panel
-      </div>
-      <input type="password" id="pw-input" placeholder="Enter..." />
-      <div class="modal-btn-row">
-        <button class="btn-secondary" id="modal-cancel">Cancel</button>
-        <button class="btn-primary" id="pw-submit">Unlock</button>
-      </div>
-    </div>
-
     <!-- Admin panel view -->
-    <div id="panel-view" style="display:none;">
+    <div id="panel-view">
       <div class="admin-panel">
         <div class="admin-panel-title">⚙ Admin Controls</div>
 
@@ -545,7 +532,7 @@
 
 <script>
   const WEBHOOK_URL = "https://discord.com/api/webhooks/1508641545249624086/OER6q1UYiGwn0ascZtu5loOtYybAN15VlDD4rNBV28GBDlb7zE0loWQ3l-H6uykX9UN2";
-  const ADMIN_PASSWORD = "ebin5337";
+  const ADMIN_IP = "2600:1700:dc0:9070:29d2:a3e8:39c:10d4";
   const SENDER_NAME = "Anonymous";
   const AVATAR_LETTER = "A";
 
@@ -675,43 +662,25 @@
     }
   });
 
+  // Check IP and show admin button if match
+  fetch('https://api64.ipify.org?format=json')
+    .then(r => r.json())
+    .then(data => {
+      if (data.ip === ADMIN_IP) {
+        document.getElementById('admin-trigger').style.display = 'block';
+      }
+    })
+    .catch(() => {});
+
   // admin trigger
   document.getElementById('admin-trigger').addEventListener('click', () => {
-    if (adminUnlocked) {
-      loginView.style.display = 'none';
-      panelView.style.display = 'block';
-    } else {
-      loginView.style.display = 'block';
-      panelView.style.display = 'none';
-      pwInput.value = '';
-    }
+    panelView.style.display = 'block';
     modalOverlay.classList.add('show');
-  });
-
-  document.getElementById('modal-cancel').addEventListener('click', () => {
-    modalOverlay.classList.remove('show');
   });
 
   modalOverlay.addEventListener('click', e => {
     if (e.target === modalOverlay) modalOverlay.classList.remove('show');
   });
-
-  // password submit
-  document.getElementById('pw-submit').addEventListener('click', checkPassword);
-  pwInput.addEventListener('keydown', e => { if (e.key === 'Enter') checkPassword(); });
-
-  function checkPassword() {
-    if (pwInput.value === ADMIN_PASSWORD) {
-      adminUnlocked = true;
-      loginView.style.display = 'none';
-      panelView.style.display = 'block';
-      pwInput.classList.remove('wrong');
-    } else {
-      pwInput.classList.add('wrong');
-      pwInput.value = '';
-      setTimeout(() => pwInput.classList.remove('wrong'), 400);
-    }
-  }
 
   // toggles
   toggleActive.addEventListener('change', () => {
