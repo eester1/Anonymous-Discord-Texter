@@ -383,7 +383,7 @@
   // ============================================================
   //  PASTE YOUR DISCORD WEBHOOK URL HERE (between the quotes)
   // ============================================================
-  const WEBHOOK_URL = "https://discord.com/api/webhooks/1508641545249624086/OER6q1UYiGwn0ascZtu5loOtYybAN15VlDD4rNBV28GBDlb7zE0loWQ3l-H6uykX9UN2";
+  const WEBHOOK_URL = "";
 
   // Optional: change the sender name and avatar letter shown on the site
   const SENDER_NAME = "Anonymous";
@@ -431,10 +431,13 @@
   };
 
   function resolveMentions(text) {
-    return text.replace(/@([a-zA-Z0-9_.]+)/g, (match, username) => {
-      const id = mentions[username.toLowerCase()];
-      return id ? `<@${id}>` : match;
-    });
+    return text
+      .replace(/@everyone/gi, '@ everyone')
+      .replace(/@here/gi, '@ here')
+      .replace(/@([a-zA-Z0-9_.]+)/g, (match, username) => {
+        const id = mentions[username.toLowerCase()];
+        return id ? `<@${id}>` : match;
+      });
   }
 
   async function sendMessage() {
