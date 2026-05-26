@@ -481,7 +481,7 @@
 <!-- Admin trigger button (hidden by default, shown only for admin IP) -->
 <button class="admin-trigger" id="admin-trigger" style="display:none;">⚙</button>
 
-<div style="position:fixed;bottom:1.2rem;left:1.2rem;font-family:'JetBrains Mono',monospace;font-size:11px;color:rgba(124,127,142,0.5);z-index:50;letter-spacing:0.05em;">V2</div>
+<div style="position:fixed;bottom:1.2rem;left:1.2rem;font-family:'JetBrains Mono',monospace;font-size:11px;color:rgba(124,127,142,0.5);z-index:50;letter-spacing:0.05em;">V3</div>
 
 <!-- Modal -->
 <div class="modal-overlay" id="modal-overlay">
@@ -564,17 +564,27 @@
     toggleActive.checked = siteActive;
     toggleWebhook.checked = webhookActive;
 
-    if (!siteActive) {
+    const locked = !siteActive || !webhookActive;
+
+    if (locked) {
       msg.disabled = true;
-      msg.placeholder = 'Site is currently locked by admin.';
       sendBtn.className = 'send-btn';
-      lockedBanner.style.display = 'block';
-      handle.textContent = 'locked by admin';
+      if (!siteActive) {
+        msg.placeholder = 'Site is currently locked by admin.';
+        handle.textContent = 'locked by admin';
+        lockedBanner.style.display = 'block';
+      } else {
+        msg.placeholder = 'Messaging is currently disabled.';
+        handle.textContent = 'webhook disconnected';
+        lockedBanner.style.display = 'block';
+        lockedBanner.textContent = '🔌 Messaging is currently disabled. Check back later!';
+      }
     } else {
       msg.disabled = false;
       msg.placeholder = 'Type a message...';
       lockedBanner.style.display = 'none';
-      handle.textContent = webhookActive ? 'ready to post' : 'webhook disconnected';
+      lockedBanner.textContent = '🔒 This site is currently locked by the admin. Check back later!';
+      handle.textContent = 'ready to post';
     }
   }
 
