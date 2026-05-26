@@ -426,8 +426,19 @@
 
   sendBtn.addEventListener('click', sendMessage);
 
+  const mentions = {
+    'eester1': '337011899940208640'
+  };
+
+  function resolveMentions(text) {
+    return text.replace(/@([a-zA-Z0-9_.]+)/g, (match, username) => {
+      const id = mentions[username.toLowerCase()];
+      return id ? `<@${id}>` : match;
+    });
+  }
+
   async function sendMessage() {
-    const text = msg.value.trim();
+    const text = resolveMentions(msg.value.trim());
     if (!text || !WEBHOOK_URL) return;
 
     sendBtn.className = 'send-btn loading';
@@ -439,7 +450,8 @@
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           username: SENDER_NAME,
-          content: text
+          content: text,
+          allowed_mentions: { parse: ['users'] }
         })
       });
 
